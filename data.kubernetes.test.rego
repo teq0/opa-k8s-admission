@@ -222,21 +222,38 @@ request_dog_bad = {
 }
 
 object_with_label_foo_bar = {
-    "object": {
-        "metadata": {
-            "labels": {
-                "foo": "bar"
-            }
+    "metadata": {
+        "labels": {
+            "foo": "bar"
         }
     }
 }
 
 object_without_labels = {
-    "object": {
-        "metadata": {
-            "labels": {
-                "foo": "bar"
-            }
+    "metadata": {
+        "annotations": {
+            "foo": "bar"
         }
+    }
+}
+
+object_with_annotation_foo_bar = {
+    "metadata": {
+        "annotations": {
+            "foo": "bar"
+        }
+    }
+}
+
+object_without_annotations = {
+    "metadata": {
+        "labels": {
+            "foo": "bar"
+        }
+    }
+}
+
+object_without_labels_or_annotations = {
+    "metadata": {
     }
 }

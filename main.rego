@@ -64,8 +64,24 @@ haslabels {
   input.metadata.labels
 } 
 
-haslabel[label] {
+haslabel(label) {
   haslabels
   input.metadata.labels[label]
 } 
 
+haslabelvalue(key, val) {
+  input.metadata.labels[key] = val
+}
+
+hasannotations {
+  input.metadata.annotations
+} 
+
+hasannotation(annotation) {
+  hasannotations
+  input.metadata.annotations[annotation]
+} 
+
+hasannotationvalue(key, val) {
+  input.metadata.annotations[key] = val
+}

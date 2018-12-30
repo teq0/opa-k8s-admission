@@ -30,3 +30,35 @@ test_haslabels_true {
 test_no_labels_true {
   not haslabels with input as k8s.object_without_labels
 }
+
+test_haslabel_foo {
+  haslabel("foo") with input as k8s.object_with_label_foo_bar
+}
+
+test_not_haslabel_foo1 {
+  not haslabel("foo1") with input as k8s.object_with_label_foo_bar
+}
+
+test_haslabel_fooeqbar {
+  haslabelvalue("foo", "bar") with input as k8s.object_with_label_foo_bar
+}
+
+test_hasannotations_true {
+  hasannotations with input as k8s.object_with_annotation_foo_bar
+}
+
+test_no_annotations_true {
+  not hasannotations with input as k8s.object_without_annotations
+}
+
+test_hasannotation_foo {
+  hasannotation("foo") with input as k8s.object_with_annotation_foo_bar
+}
+
+test_not_hasannotation_foo1 {
+  not hasannotation("foo1") with input as k8s.object_with_annotation_foo_bar
+}
+
+test_hasannotation_fooeqbar {
+  hasannotationvalue("foo", "bar") with input as k8s.object_with_annotation_foo_bar
+}
