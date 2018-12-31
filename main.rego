@@ -38,8 +38,12 @@ response = x {
 	}
 }
 
+isValidRequest {
+  count(deny) = 0
+}
+
 ############################################################
-# Specific rules below here 
+# DENY rules 
 ############################################################
 
 # Check for bad dogs
@@ -49,39 +53,81 @@ deny[msg] {
   msg = sprintf("Dog %s is a good dog, Brent", [input.request.object.spec.name])
 }
 
-# add foo label if missing or incorrect
+############################################################
+# PATCH helpers 
+# Note: These rules assume that the input is an object, 
+# not an AdmissionRequest, because for UPDATEs there are two 
+# objects, the new one and the old one, and it may be
+# necessary to reason about the previous state as well
+# as the new state.
+# So from the context of an AdmissionRequest they need to
+# be called like
+#   hasLabelValue[["foo", "bar"]] with input as input.request.object
+# or
+#   hasLabelValue[["foo", "bar"]] with input as input.request.oldObject
+############################################################
 
-patch[patchCode] {
-  input.request.kind.kind = "Dog"
-  input.request.object.spec.isGood = true
-  isPatch := true
-  patchCode := [
-    {"op": "add", "path": "/metadata/labels/foo", "value": "bar"},
-  ]
-}
-
-haslabels {
+hasLabels {
   input.metadata.labels
 } 
 
-haslabel(label) {
-  haslabels
+hasLabel[label] {
+  hasLabels
   input.metadata.labels[label]
 } 
 
-haslabelvalue(key, val) {
+hasLabelValue[[key, val]] {
+  hasLabels
   input.metadata.labels[key] = val
 }
 
-hasannotations {
+hasAnnotations {
   input.metadata.annotations
 } 
 
-hasannotation(annotation) {
-  hasannotations
+hasAnnotation[annotation] {
+  hasAnnotations
   input.metadata.annotations[annotation]
 } 
 
-hasannotationvalue(key, val) {
+hasAnnotationValue[[key, val]] {
+  hasAnnotations
   input.metadata.annotations[key] = val
 }
+
+makeLabelPatch(op, key, value) = patchCode {
+  patchCode = {
+    "op": op,
+    "path": sprintf("%s%s", ["/metadata/labels/", key]),
+    "value": value,
+  }
+}
+
+############################################################
+# PATCH rules 
+#
+# Note: All patch rules should start with `isValidRequest` 
+############################################################
+
+# add foo label if not present
+patch[patchCode] {
+  isValidRequest
+  not hasLabelValue[["foo", "bar"]] with input as input.request.object
+  patchCode = makeLabelPatch("add", "foo", "bar")
+}
+
+# add baz label if it has foo
+# TODO: no test for this atm
+patch[patchCode] {
+  isValidRequest
+  hasLabelValue[["foo", "bar"]] with input as input.request.object
+  patchCode = makeLabelPatch("add", "baz", "quux")
+}
+
+# add both foo and baz if annotation "allthethings" exists
+patch[patchCode] {
+  isValidRequest
+  hasAnnotation["allthethings"] with input as input.request.object
+  patchCode = makeLabelPatch("add", "baz", "quux") 
+}
+
