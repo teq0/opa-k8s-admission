@@ -1,7 +1,7 @@
 package system
 
 ############################################################
-# Boilerplate--implementation of the k8s admission control external webhook interface.
+# Implementation of the k8s admission control external webhook interface.
 ############################################################
 
 main = {
@@ -42,15 +42,20 @@ isValidRequest {
   count(deny) = 0
 }
 
-############################################################
-# DENY rules 
-############################################################
+isCreateOrUpdate {
+  isCreate
+}
 
-# Check for bad dogs
-deny[msg] {
-  input.request.kind.kind = "Dog"
-  input.request.object.spec.isGood = false
-  msg = sprintf("Dog %s is a good dog, Brent", [input.request.object.spec.name])
+isCreateOrUpdate {
+  isUpdate
+}
+
+isCreate {
+  input.request.operation == "CREATE"
+}
+
+isUpdate {
+  input.request.operation == "UPDATE"
 }
 
 ############################################################
@@ -98,36 +103,15 @@ hasAnnotationValue[[key, val]] {
 makeLabelPatch(op, key, value) = patchCode {
   patchCode = {
     "op": op,
-    "path": sprintf("%s%s", ["/metadata/labels/", key]),
+    "path": concat("/", ["/metadata/labels", key]),
     "value": value,
   }
 }
 
-############################################################
-# PATCH rules 
-#
-# Note: All patch rules should start with `isValidRequest` 
-############################################################
-
-# add foo label if not present
-patch[patchCode] {
-  isValidRequest
-  not hasLabelValue[["foo", "bar"]] with input as input.request.object
-  patchCode = makeLabelPatch("add", "foo", "bar")
+makeAnnotationPatch(op, key, value) = patchCode {
+  patchCode = {
+    "op": op,
+    "path": concat("/", ["/metadata/annotations", key]),
+    "value": value,
+  }
 }
-
-# add baz label if it has foo
-# TODO: no test for this atm
-patch[patchCode] {
-  isValidRequest
-  hasLabelValue[["foo", "bar"]] with input as input.request.object
-  patchCode = makeLabelPatch("add", "baz", "quux")
-}
-
-# add both foo and baz if annotation "allthethings" exists
-patch[patchCode] {
-  isValidRequest
-  hasAnnotation["allthethings"] with input as input.request.object
-  patchCode = makeLabelPatch("add", "baz", "quux") 
-}
-
