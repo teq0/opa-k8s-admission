@@ -17,3 +17,10 @@ install-mutation:
 	kubectl -n opa create configmap opa-mutation --from-file=rego/mutation.rego --dry-run -o yaml | kubectl apply -f -
 
 install-rego: install-core install-validation install-mutation
+
+.PHONY: remove-rego
+
+remove-rego:
+	kubectl -n opa delete cm opa-mutation
+	kubectl -n opa delete cm opa-validation
+	kubectl -n opa delete cm opa-corem

@@ -60,11 +60,9 @@ isUpdate {
 
 ############################################################
 # PATCH helpers 
-# Note: These rules assume that the input is an object, 
-# not an AdmissionRequest, because for UPDATEs there are two 
-# objects, the new one and the old one, and it may be
-# necessary to reason about the previous state as well
-# as the new state.
+# Note: These rules assume that the input is an object
+# not an AdmissionRequest, because labels and annotations 
+# can apply to various sub-objects within a request
 # So from the context of an AdmissionRequest they need to
 # be called like
 #   hasLabelValue[["foo", "bar"]] with input as input.request.object
@@ -100,18 +98,51 @@ hasAnnotationValue[[key, val]] {
   input.metadata.annotations[key] = val
 }
 
-makeLabelPatch(op, key, value) = patchCode {
+
+############################################################
+# makeLabelPatch creates a label patch
+# Labels can exist on numerous child objects e.g. Deployment.template.metadata
+# Use pathPrefix to specify a lower level object, or pass "" to select the 
+# top level object
+# Note: pathPrefix should have a leading '/' but no trailing '/'
+############################################################
+
+
+
+makeLabelPatch(op, key, value, pathPrefix) = patchCode {
   patchCode = {
     "op": op,
-    "path": concat("/", ["/metadata/labels", key]),
+    "path": concat("/", [pathPrefix, "metadata/labels", key]),
+    "value": value,
+  }
+} 
+# {
+  # patchCode = {
+  #   "op": op,
+  #   "path": "/metadata/labels",
+  #   "value": sprintf("{ \"%s\": \"%s\" }", [ key, value]),
+  # }
+# }
+
+
+makeAnnotationPatch(op, key, value, pathPrefix) = patchCode {
+  patchCode = {
+    "op": op,
+    "path": concat("/", [pathPrefix, "metadata/annotations", key]),
     "value": value,
   }
 }
 
-makeAnnotationPatch(op, key, value) = patchCode {
-  patchCode = {
-    "op": op,
-    "path": concat("/", ["/metadata/annotations", key]),
-    "value": value,
-  }
+############################################################
+# Dummy deny and patch to keep compiler happy
+############################################################
+
+deny[msg] {
+  msg := "n/a"
+  1=2
+}
+
+patch[patchCode] {
+  patchCode := "n/a"
+  1=2
 }

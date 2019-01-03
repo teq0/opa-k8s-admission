@@ -122,8 +122,12 @@ test_hasAnnotation_fooeqbar {
 #-----------------------------------------------------------
 
 test_makeLabelPatch {
-  l := makeLabelPatch("add", "foo", "bar")
+  l := makeLabelPatch("add", "foo", "bar", "") with input as k8s.object_with_label_foo_bar
   l = { "op": "add", "path": "/metadata/labels/foo", "value": "bar"}
+  # test pathPrefix
+  m := makeLabelPatch("add", "foo", "bar", "/template") with input as k8s.object_with_label_foo_bar
+  m = { "op": "add", "path": "/template/metadata/labels/foo", "value": "bar"}
+
 }
 
 ############################################################
@@ -134,57 +138,41 @@ test_makeLabelPatch {
 # Sample patch values to test against
 #-----------------------------------------------------------
 
-# TODO - should these live with the test data rather than the tests? 
+# TODO - should these values live with the test data rather than the tests? 
 
-patchCode_foobar_existing_labels = x {
-  x = [{
-    "op": "add", 
-    "path": "/metadata/labels/foo", 
-    "value": "bar"
-  }]
+patchCode_foobar_existing_labels = {
+  "op": "add", 
+  "path": "/metadata/labels/foo", 
+  "value": "bar"
 }
 
 # TODO - k8s expects a different patch to add a label if no labels already exist
 # (and ditto for annotations). Haven't implemented this yet, and could be tricky because opa doesn't 
 # guarantee execution order
 
-patchCode_foobar_no_existing_labels = x {
-  x = [{
-    "op": "add", 
-    "path": "/metadata/labels", 
-    "value": {"foo": "bar"}
-  }]
+patchCode_foobar_no_existing_labels = {
+  "op": "add", 
+  "path": "/metadata/labels", 
+  "value": {"foo": "bar"}
 }
 
-patchCode_allthethings_existing_labels = x {
-  x = [
-    {
-      "op": "add", 
-      "path": "/metadata/labels/foo", 
-      "value": "bar"
-    },
-    {
-      "op": "add", 
-      "path": "/metadata/labels/baz", 
-      "value": "quux"
-    }
-  ]
+patchCode_bazquux_existing_labels = {
+  "op": "add", 
+  "path": "/metadata/labels/baz", 
+  "value": "quux"
 }
 
-patchCode_add_rating_annotation = x {
-  x = [{
-    "op": "add", 
-    "path": "/metadata/annotations/rating", 
-    "value": "14/10"
-  }]
+patchCode_quuzcorge_existing_labels = {
+  "op": "add", 
+  "path": "/metadata/labels/quuz", 
+  "value": "corge"
 }
 
-patchCode_add_rating_annotation1 = {
+patchCode_rating_annotation = {
   "op": "add", 
   "path": "/metadata/annotations/rating", 
   "value": "14/10"
 }
-
 
 #-----------------------------------------------------------
 # Test: Correct patch is created for Dogs with no foo label
@@ -192,14 +180,22 @@ patchCode_add_rating_annotation1 = {
 #  existing labels but not foo, and Dogs with foo label with wrong value
 #-----------------------------------------------------------
 
-test_main_dog_good_missing_label {
+test_main_dog_good_missing_label_foobar {
   res :=  main with input as k8s.request_dog_no_label
   res.response.allowed = true
   res.response.patchType = "JSONPatch"
   resPatch = json.unmarshal(base64url.decode(res.response.patch))
   trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  trace(sprintf(">>>> patchCode_foobar_existing_labels = '%s'", [patchCode_foobar_existing_labels]))
-  resPatch = patchCode_foobar_existing_labels
+  resPatch[_] = patchCode_foobar_existing_labels
+}
+
+test_main_dog_good_missing_label_quuzcorge {
+  res :=  main with input as k8s.request_dog_no_label
+  res.response.allowed = true
+  res.response.patchType = "JSONPatch"
+  resPatch = json.unmarshal(base64url.decode(res.response.patch))
+  trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
+  resPatch[_] = patchCode_quuzcorge_existing_labels
 }
 
 #-----------------------------------------------------------
@@ -212,8 +208,8 @@ test_main_dog_good_allthethings {
   res.response.patchType = "JSONPatch"
   resPatch = json.unmarshal(base64url.decode(res.response.patch))
   trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  trace(sprintf(">>>> patchCode_foobar_existing_labels = '%s'", [patchCode_allthethings_existing_labels]))
-  resPatch = patchCode_allthethings_existing_labels
+  resPatch[_] = patchCode_foobar_existing_labels
+  resPatch[_] = patchCode_bazquux_existing_labels
 }
 
 #-----------------------------------------------------------
@@ -223,11 +219,10 @@ test_main_dog_good_allthethings {
 # TODO - waiting on answer for idiomatic way to check for the existence of an element in an array
 
 test_main_dog_good_allthethings {
-  res :=  main with input as k8s.request_cat_named_tom
+  res :=  main with input as k8s.request_dog_good
   res.response.allowed = true
   res.response.patchType = "JSONPatch"
   resPatch = json.unmarshal(base64url.decode(res.response.patch))
   trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  trace(sprintf(">>>> patchCode_add_rating_annotation = '%s'", [patchCode_add_rating_annotation]))
-  resPatch[patchCode_add_rating_annotation1]
+  resPatch[_] = patchCode_rating_annotation
 }
