@@ -23,4 +23,4 @@ install-rego: install-core install-validation install-mutation
 remove-rego:
 	kubectl -n opa delete cm opa-mutation
 	kubectl -n opa delete cm opa-validation
-	kubectl -n opa delete cm opa-corem
+	kubectl -n opa delete cm opa-core

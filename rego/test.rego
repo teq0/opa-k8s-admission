@@ -127,7 +127,6 @@ test_makeLabelPatch {
   # test pathPrefix
   m := makeLabelPatch("add", "foo", "bar", "/template") with input as k8s.object_with_label_foo_bar
   m = { "op": "add", "path": "/template/metadata/labels/foo", "value": "bar"}
-
 }
 
 ############################################################

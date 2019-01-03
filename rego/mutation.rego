@@ -6,6 +6,16 @@ package system
 # Note: All patch rules should start with `isValidRequest` and `isCreateOrUpdate`
 ############################################################
 
+# add label leaf to Dogs if not present
+# patch[patchCode] {
+#   isValidRequest
+#   isCreateOrUpdate
+#   input.request.kind.kind = "Dog"
+#   not hasLabels with input as input.request.object
+#   patchCode =  { "op": "add", "path": "/metadata/labels", "value": {}}
+# }
+
+
 # add foo label to Dogs if not present
 patch[patchCode] {
   isValidRequest
