@@ -11,8 +11,8 @@ import data.kubernetes.test as k8s
 #-----------------------------------------------------------
 
 test_main_default_allow {
-  res :=  main with input as k8s.request_default
-  res.response.allowed
+	res := main with input as k8s.request_default
+	res.response.allowed
 }
 
 #-----------------------------------------------------------
@@ -20,8 +20,8 @@ test_main_default_allow {
 #-----------------------------------------------------------
 
 test_main_dog_good_allow {
-  res :=  main with input as k8s.request_dog_good
-  res.response.allowed = true
+	res := main with input as k8s.request_dog_good
+	res.response.allowed = true
 }
 
 #-----------------------------------------------------------
@@ -29,8 +29,8 @@ test_main_dog_good_allow {
 #-----------------------------------------------------------
 
 test_main_dog_bad_deny {
-  res :=  main with input as k8s.request_dog_bad
-  res.response.allowed = false
+	res := main with input as k8s.request_dog_bad
+	res.response.allowed = false
 }
 
 ############################################################
@@ -42,7 +42,7 @@ test_main_dog_bad_deny {
 #-----------------------------------------------------------
 
 test_hasLabels_true {
-  hasLabels with input as k8s.object_with_label_foo_bar
+	hasLabels with input as k8s.object_with_label_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -50,7 +50,7 @@ test_hasLabels_true {
 #-----------------------------------------------------------
 
 test_no_labels_true {
-  not hasLabels with input as k8s.object_without_labels
+	not hasLabels with input as k8s.object_without_labels
 }
 
 #-----------------------------------------------------------
@@ -58,7 +58,7 @@ test_no_labels_true {
 #-----------------------------------------------------------
 
 test_hasLabel_foo {
-  hasLabel["foo"] with input as k8s.object_with_label_foo_bar
+	hasLabel.foo with input as k8s.object_with_label_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -66,7 +66,7 @@ test_hasLabel_foo {
 #-----------------------------------------------------------
 
 test_not_hasLabel_foo1 {
-  not hasLabel["foo1"] with input as k8s.object_with_label_foo_bar
+	not hasLabel.foo1 with input as k8s.object_with_label_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -74,7 +74,7 @@ test_not_hasLabel_foo1 {
 #-----------------------------------------------------------
 
 test_hasLabelValue_fooeqbar {
-  hasLabelValue[["foo", "bar"]] with input as k8s.object_with_label_foo_bar
+	hasLabelValue[["foo", "bar"]] with input as k8s.object_with_label_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -82,7 +82,7 @@ test_hasLabelValue_fooeqbar {
 #-----------------------------------------------------------
 
 test_hasAnnotations_true {
-  hasAnnotations with input as k8s.object_with_annotation_foo_bar
+	hasAnnotations with input as k8s.object_with_annotation_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -90,7 +90,7 @@ test_hasAnnotations_true {
 #-----------------------------------------------------------
 
 test_no_annotations_true {
-  not hasAnnotations with input as k8s.object_without_annotations
+	not hasAnnotations with input as k8s.object_without_annotations
 }
 
 #-----------------------------------------------------------
@@ -98,7 +98,7 @@ test_no_annotations_true {
 #-----------------------------------------------------------
 
 test_hasAnnotation_foo {
-  hasAnnotation["foo"] with input as k8s.object_with_annotation_foo_bar
+	hasAnnotation.foo with input as k8s.object_with_annotation_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -106,7 +106,7 @@ test_hasAnnotation_foo {
 #-----------------------------------------------------------
 
 test_not_hasAnnotation_foo1 {
-  not hasAnnotation["foo1"] with input as k8s.object_with_annotation_foo_bar
+	not hasAnnotation.foo1 with input as k8s.object_with_annotation_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -114,7 +114,7 @@ test_not_hasAnnotation_foo1 {
 #-----------------------------------------------------------
 
 test_hasAnnotation_fooeqbar {
-  hasAnnotationValue[["foo", "bar"]]  with input as k8s.object_with_annotation_foo_bar
+	hasAnnotationValue[["foo", "bar"]] with input as k8s.object_with_annotation_foo_bar
 }
 
 #-----------------------------------------------------------
@@ -122,11 +122,12 @@ test_hasAnnotation_fooeqbar {
 #-----------------------------------------------------------
 
 test_makeLabelPatch {
-  l := makeLabelPatch("add", "foo", "bar", "") with input as k8s.object_with_label_foo_bar
-  l = { "op": "add", "path": "/metadata/labels/foo", "value": "bar"}
-  # test pathPrefix
-  m := makeLabelPatch("add", "foo", "bar", "/template") with input as k8s.object_with_label_foo_bar
-  m = { "op": "add", "path": "/template/metadata/labels/foo", "value": "bar"}
+	l := makeLabelPatch("add", "foo", "bar", "") with input as k8s.object_with_label_foo_bar
+	l = {"op": "add", "path": "/metadata/labels/foo", "value": "bar"}
+
+	# test pathPrefix
+	m := makeLabelPatch("add", "foo", "bar", "/template") with input as k8s.object_with_label_foo_bar
+	m = {"op": "add", "path": "/template/metadata/labels/foo", "value": "bar"}
 }
 
 ############################################################
@@ -140,9 +141,9 @@ test_makeLabelPatch {
 # TODO - should these values live with the test data rather than the tests? 
 
 patchCode_foobar_existing_labels = {
-  "op": "add", 
-  "path": "/metadata/labels/foo", 
-  "value": "bar"
+	"op": "add",
+	"path": "/metadata/labels/foo",
+	"value": "bar",
 }
 
 # TODO - k8s expects a different patch to add a label if no labels already exist
@@ -150,27 +151,27 @@ patchCode_foobar_existing_labels = {
 # guarantee execution order
 
 patchCode_foobar_no_existing_labels = {
-  "op": "add", 
-  "path": "/metadata/labels", 
-  "value": {"foo": "bar"}
+	"op": "add",
+	"path": "/metadata/labels",
+	"value": {"foo": "bar"},
 }
 
 patchCode_bazquux_existing_labels = {
-  "op": "add", 
-  "path": "/metadata/labels/baz", 
-  "value": "quux"
+	"op": "add",
+	"path": "/metadata/labels/baz",
+	"value": "quux",
 }
 
 patchCode_quuzcorge_existing_labels = {
-  "op": "add", 
-  "path": "/metadata/labels/quuz", 
-  "value": "corge"
+	"op": "add",
+	"path": "/metadata/labels/quuz",
+	"value": "corge",
 }
 
 patchCode_rating_annotation = {
-  "op": "add", 
-  "path": "/metadata/annotations/rating", 
-  "value": "14/10"
+	"op": "add",
+	"path": "/metadata/annotations/rating",
+	"value": "14/10",
 }
 
 #-----------------------------------------------------------
@@ -180,21 +181,21 @@ patchCode_rating_annotation = {
 #-----------------------------------------------------------
 
 test_main_dog_good_missing_label_foobar {
-  res :=  main with input as k8s.request_dog_no_label
-  res.response.allowed = true
-  res.response.patchType = "JSONPatch"
-  resPatch = json.unmarshal(base64url.decode(res.response.patch))
-  trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  resPatch[_] = patchCode_foobar_existing_labels
+	res := main with input as k8s.request_dog_no_label
+	res.response.allowed = true
+	res.response.patchType = "JSONPatch"
+	resPatch = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
+	resPatch[_] = patchCode_foobar_existing_labels
 }
 
 test_main_dog_good_missing_label_quuzcorge {
-  res :=  main with input as k8s.request_dog_no_label
-  res.response.allowed = true
-  res.response.patchType = "JSONPatch"
-  resPatch = json.unmarshal(base64url.decode(res.response.patch))
-  trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  resPatch[_] = patchCode_quuzcorge_existing_labels
+	res := main with input as k8s.request_dog_no_label
+	res.response.allowed = true
+	res.response.patchType = "JSONPatch"
+	resPatch = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
+	resPatch[_] = patchCode_quuzcorge_existing_labels
 }
 
 #-----------------------------------------------------------
@@ -202,13 +203,13 @@ test_main_dog_good_missing_label_quuzcorge {
 #-----------------------------------------------------------
 
 test_main_dog_good_allthethings {
-  res :=  main with input as k8s.request_dog_with_annotation_allthethings
-  res.response.allowed = true
-  res.response.patchType = "JSONPatch"
-  resPatch = json.unmarshal(base64url.decode(res.response.patch))
-  trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  resPatch[_] = patchCode_foobar_existing_labels
-  resPatch[_] = patchCode_bazquux_existing_labels
+	res := main with input as k8s.request_dog_with_annotation_allthethings
+	res.response.allowed = true
+	res.response.patchType = "JSONPatch"
+	resPatch = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
+	resPatch[_] = patchCode_foobar_existing_labels
+	resPatch[_] = patchCode_bazquux_existing_labels
 }
 
 #-----------------------------------------------------------
@@ -218,10 +219,10 @@ test_main_dog_good_allthethings {
 # TODO - waiting on answer for idiomatic way to check for the existence of an element in an array
 
 test_main_dog_good_allthethings {
-  res :=  main with input as k8s.request_dog_good
-  res.response.allowed = true
-  res.response.patchType = "JSONPatch"
-  resPatch = json.unmarshal(base64url.decode(res.response.patch))
-  trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-  resPatch[_] = patchCode_rating_annotation
+	res := main with input as k8s.request_dog_good
+	res.response.allowed = true
+	res.response.patchType = "JSONPatch"
+	resPatch = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
+	resPatch[_] = patchCode_rating_annotation
 }
