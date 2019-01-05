@@ -24,7 +24,7 @@ patch[patchCode] {
 	patchCode = makeLabelPatch("add", "quuz", "corge", "")
 }
 
-# add baz label if it has foo
+# add baz label if it has label foo=bar
 patch[patchCode] {
 	isValidRequest
 	isCreateOrUpdate
@@ -34,7 +34,7 @@ patch[patchCode] {
 	patchCode = makeLabelPatch("add", "baz", "quux", "")
 }
 
-# Dogs named Master Chief get an extra annotation
+# Dogs get a rating
 patch[patchCode] {
 	isValidRequest
 	isCreateOrUpdate
