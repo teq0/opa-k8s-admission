@@ -1,0 +1,12 @@
+apiVersion: frens.teq0.com/v1
+kind: Dog
+metadata:
+  name: rex
+  labels:
+    foo: bar1
+spec:
+  name: Rex
+  isGood: false
+  food: everything
+
+

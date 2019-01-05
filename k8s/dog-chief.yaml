@@ -1,0 +1,9 @@
+apiVersion: frens.teq0.com/v1
+kind: Dog
+metadata:
+  name: chief
+spec:
+  name: Master Chief
+  isGood: true
+  food: corn chips
+

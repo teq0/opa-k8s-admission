@@ -1,0 +1,13 @@
+apiVersion: frens.teq0.com/v1
+kind: Dog
+metadata:
+  name: spike
+  labels:
+    foo: garple
+  annotations:
+    frens.teq0.com/allthethings: baz
+spec:
+  name: Spike
+  isGood: true
+  food: lamb
+

@@ -140,38 +140,49 @@ test_makeLabelPatch {
 
 # TODO - should these values live with the test data rather than the tests? 
 
-patchCode_foobar_existing_labels = {
+patchCode_labels_base = {
+	"op": "add",
+	"path": "/metadata/labels",
+	"value": {},
+}
+
+patchCode_label_foobar = {
 	"op": "add",
 	"path": "/metadata/labels/foo",
 	"value": "bar",
 }
 
-# TODO - k8s expects a different patch to add a label if no labels already exist
-# (and ditto for annotations). Haven't implemented this yet, and could be tricky because opa doesn't 
-# guarantee execution order
-
-patchCode_foobar_no_existing_labels = {
-	"op": "add",
-	"path": "/metadata/labels",
-	"value": {"foo": "bar"},
-}
-
-patchCode_bazquux_existing_labels = {
+patchCode_label_bazquux = {
 	"op": "add",
 	"path": "/metadata/labels/baz",
 	"value": "quux",
 }
 
-patchCode_quuzcorge_existing_labels = {
+patchCode_label_quuzcorge = {
 	"op": "add",
 	"path": "/metadata/labels/quuz",
 	"value": "corge",
 }
 
-patchCode_rating_annotation = {
+patchCode_annotations_base = {
+	"op": "add",
+	"path": "/metadata/annotations",
+	"value": {},
+}
+
+patchCode_annotation_rating = {
 	"op": "add",
 	"path": "/metadata/annotations/rating",
 	"value": "14/10",
+}
+
+has_patch(patches, patch) {
+	patches[_] = patch
+}
+
+is_patch_response(res) {
+	res.response.patchType = "JSONPatch"
+	res.response.patch
 }
 
 #-----------------------------------------------------------
@@ -180,49 +191,83 @@ patchCode_rating_annotation = {
 #  existing labels but not foo, and Dogs with foo label with wrong value
 #-----------------------------------------------------------
 
-test_main_dog_good_missing_label_foobar {
-	res := main with input as k8s.request_dog_no_label
+test_main_dog_no_labels {
+	res := main with input as k8s.request_dog_no_labels_or_annotations
 	res.response.allowed = true
-	res.response.patchType = "JSONPatch"
-	resPatch = json.unmarshal(base64url.decode(res.response.patch))
-	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-	resPatch[_] = patchCode_foobar_existing_labels
+	is_patch_response(res)
+	patches = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf("[test_main_dog_no_labels] patches = '%s'", [patches]))
+	has_patch(patches, patchCode_labels_base)
+	has_patch(patches, patchCode_label_foobar)
+	has_patch(patches, patchCode_label_quuzcorge)
 }
 
-test_main_dog_good_missing_label_quuzcorge {
-	res := main with input as k8s.request_dog_no_label
+test_main_dog_some_labels {
+	res := main with input as k8s.request_dog_some_labels_and_annotations
 	res.response.allowed = true
-	res.response.patchType = "JSONPatch"
-	resPatch = json.unmarshal(base64url.decode(res.response.patch))
-	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-	resPatch[_] = patchCode_quuzcorge_existing_labels
+	is_patch_response(res)
+	patches = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf("[test_main_dog_some_labels] patches = '%s'", [patches]))
+	not has_patch(patches, patchCode_labels_base)
+	has_patch(patches, patchCode_label_foobar)
+	has_patch(patches, patchCode_label_quuzcorge)
 }
 
-#-----------------------------------------------------------
-# Test: Correct patch is created for Dogs with allthethings annotation and no labels
-#-----------------------------------------------------------
+test_main_dog_existing_labels_and_annotations_main {
+	res := main with input as k8s.request_dog_existing_labels_and_annotations
+	res.response.allowed = true
+	test_main_dog_existing_labels_and_annotations_detail with input as res
+}
 
-test_main_dog_good_allthethings {
-	res := main with input as k8s.request_dog_with_annotation_allthethings
+# THIS IS FAILING, need to figure out how to OR tests
+
+test_main_dog_existing_labels_and_annotations_detail {
+	not input.response.patchType
+}
+
+test_main_dog_existing_labels_and_annotations_detail {
+	input.response.patchType = "JSONPatch"
+	input.response.patch
+	patches = json.unmarshal(base64url.decode(input.response.patch))
+	trace(sprintf("[test_main_dog_existing_labels_and_annotations] patches = '%s'", [patches]))
+	not has_patch(patches, patchCode_labels_base)
+	not has_patch(patches, patchCode_label_foobar)
+	not has_patch(patches, patchCode_label_quuzcorge)
+	has_patch(patches, patchCode_label_bazquux)
+	not has_patch(patches, patchCode_annotations_base)
+	not has_patch(patches, patchCode_annotation_rating)
+}
+
+test_main_dog_missing_label_quuzcorge {
+	res := main with input as k8s.request_dog_no_labels_or_annotations
 	res.response.allowed = true
 	res.response.patchType = "JSONPatch"
-	resPatch = json.unmarshal(base64url.decode(res.response.patch))
-	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-	resPatch[_] = patchCode_foobar_existing_labels
-	resPatch[_] = patchCode_bazquux_existing_labels
+	patches = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf("[test_main_dog_good_missing_label_quuzcorge] patches = '%s'", [patches]))
+	has_patch(patches, patchCode_labels_base)
+	has_patch(patches, patchCode_label_quuzcorge)
 }
 
 #-----------------------------------------------------------
 # Test: Correct annotation patch is created for Cats named tom
 #-----------------------------------------------------------
 
-# TODO - waiting on answer for idiomatic way to check for the existence of an element in an array
-
-test_main_dog_good_allthethings {
-	res := main with input as k8s.request_dog_good
+test_main_dog_add_first_annotation {
+	res := main with input as k8s.request_dog_no_labels_or_annotations
 	res.response.allowed = true
 	res.response.patchType = "JSONPatch"
-	resPatch = json.unmarshal(base64url.decode(res.response.patch))
-	trace(sprintf(">>>> resPatch = '%s'", [resPatch]))
-	resPatch[_] = patchCode_rating_annotation
+	patches = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf("[test_main_dog_add_first_annotation] patches = '%s'", [patches]))
+	has_patch(patches, patchCode_annotations_base)
+	has_patch(patches, patchCode_annotation_rating)
+}
+
+test_main_dog_add_subsequent_annotation {
+	res := main with input as k8s.request_dog_some_labels_and_annotations
+	res.response.allowed = true
+	res.response.patchType = "JSONPatch"
+	patches = json.unmarshal(base64url.decode(res.response.patch))
+	trace(sprintf("[test_main_dog_add_subsequent_annotation] patches = '%s'", [patches]))
+	not has_patch(patches, patchCode_annotations_base)
+	has_patch(patches, patchCode_annotation_rating)
 }
