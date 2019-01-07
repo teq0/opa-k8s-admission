@@ -1,4 +1,5 @@
 # This is derived from the tutorial at https://www.openpolicyagent.org/docs/kubernetes-admission-control.html
+mkdir -p tmp
 
 kubectl create ns opa
 
