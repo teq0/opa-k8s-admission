@@ -30,6 +30,26 @@ kubectl create secret tls opa-server --cert=tmp/server.crt --key=tmp/server.key
 kubectl apply -f k8s/crd-dog.yaml
 kubectl apply -f k8s/clusterrole-dogs.yaml
 kubectl apply -f k8s/admission-controller.yaml
-kubectl apply -f k8s/webhook-configuration-mutating.yaml
 
 make install-rego
+
+cat > tmp/webhook-configuration.yaml <<EOF
+kind: MutatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1beta1
+metadata:
+  name: opa-validating-webhook
+webhooks:
+  - name: validating-webhook.openpolicyagent.org
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["dogs"]
+    clientConfig:
+      caBundle: $(cat tmp/ca.crt | base64 | tr -d '\n')
+      service:
+        namespace: opa
+        name: opa
+EOF
+
+kubectl apply -f tmp/webhook-configuration.yaml
